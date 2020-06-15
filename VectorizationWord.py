@@ -5,7 +5,6 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 import pickle
-from tqdm import tqdm
 from define import *
 import numpy as np
 
@@ -16,9 +15,8 @@ class FeatureExtraction(object):
         self.train = train      
 
     def __build_modelw2v(self, max_features = 300, weighed = False):
-        print('Building Word2Vec')
         sentences = []
-        for text in tqdm(self.data):
+        for text in self.data:
             words = text.split(" ")
             sentences.append(words)
         model = Word2Vec(sentences=sentences,
@@ -33,7 +31,6 @@ class FeatureExtraction(object):
             model.save(WORD2VEC_PATH)
 
     def __build_modeltfidf(self, max_features = 12000, weighed = False):
-        print('Building TF-IDF')
         ngram_range = (1, 2)
         if weighed:
             ngram_range = (1, 1)
@@ -66,11 +63,10 @@ class FeatureExtraction(object):
         self.word2vec = Word2Vec.load(WORD2VEC_PATH)
         self.tfidf = pickle.load(open(TFIDF_PATH.replace('.p','weighed.p'), "rb"))
 
-    def __build_w2v_features(self, max_len = 40):
-        print('Building W2V features')        
+    def __build_w2v_features(self, max_len = 40):       
         self.features = []
         self.__load_modelw2v()
-        for d in tqdm(self.data):
+        for d in self.data:
             words = d.split(" ")
             vec = []
             for i in range(max_len):
@@ -83,17 +79,15 @@ class FeatureExtraction(object):
             self.features.append(vec)
 
     def __build_tfidf_features(self):
-        print('Building TF-IDF features')
         self.features = []
         self.__load_modeltfidf()
         self.features = self.tfidf.transform(self.data).todense()
 
     def __build_wwv_features(self, max_len = 40):
-        print('Building WWV features')
         self.features = []
         self.__load_modelwwv()
         vocal = self.tfidf.vocabulary_
-        for d in tqdm(self.data):
+        for d in self.data:
             d_tfidf = self.tfidf.transform([d])
             words = d.split()
             vecs = []
